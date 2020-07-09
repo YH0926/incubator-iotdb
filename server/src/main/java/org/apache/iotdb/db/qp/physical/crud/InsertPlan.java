@@ -19,8 +19,9 @@
 
 package org.apache.iotdb.db.qp.physical.crud;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.iotdb.db.cost.statistic.Measurement;
 import org.apache.iotdb.db.qp.logical.Operator;
 import org.apache.iotdb.db.qp.physical.PhysicalPlan;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -35,7 +36,11 @@ public abstract class InsertPlan extends PhysicalPlan {
 
 
   // record the failed measurements
-  Map<String, Exception> failedMeasurements;
+  List<String> failedMeasurements;
+  List<TSDataType> failedDataTypes;
+  List<Exception> failedExceptions;
+  List<Integer> failedIndices;
+//  Map<String, Exception> failedMeasurements;
 
   public InsertPlan(Operator.OperatorType operatorType) {
     super(false, operatorType);
@@ -74,8 +79,12 @@ public abstract class InsertPlan extends PhysicalPlan {
     this.schemas = schemas;
   }
 
-  public Map<String, Exception> getFailedMeasurements() {
+  public List<String> getFailedMeasurements() {
     return failedMeasurements;
+  }
+
+  public List<Exception> getFailedExceptions() {
+    return failedExceptions;
   }
 
   public int getFailedMeasurementNumber() {
@@ -88,10 +97,40 @@ public abstract class InsertPlan extends PhysicalPlan {
    */
   public void markFailedMeasurementInsertion(int index, Exception e) {
     if (failedMeasurements == null) {
-      failedMeasurements = new HashMap<>();
+      failedMeasurements = new ArrayList<>();
+      failedExceptions = new ArrayList<>();
+      failedIndices = new ArrayList<>();
+      failedDataTypes = new ArrayList<>();
     }
-    failedMeasurements.put(measurements[index], e);
+    failedMeasurements.add(measurements[index]);
+    failedDataTypes.add(dataTypes[index]);
+    failedExceptions.add(e);
+    failedIndices.add(index);
     measurements[index] = null;
     dataTypes[index] = null;
+  }
+
+  public InsertPlan transformFailedPlan() {
+    if (failedMeasurements == null) {
+      return null;
+    }
+    measurements = new String[failedMeasurements.size()];
+    dataTypes = new TSDataType[failedMeasurements.size()];
+    for (int i = 0; i < measurements.length; i++) {
+      measurements[i] = failedMeasurements.get(i);
+      dataTypes[i] = failedDataTypes.get(i);
+    }
+    if (schemas != null) {
+      MeasurementSchema[] tempSchemas = schemas.clone();
+      schemas = new MeasurementSchema[measurements.length];
+      for (int i = 0; i < measurements.length; i++) {
+        schemas[i] = tempSchemas[failedIndices.get(i)];
+      }
+    }
+    failedMeasurements = null;
+    failedDataTypes = null;
+    failedExceptions = null;
+    failedIndices = null;
+    return this;
   }
 }

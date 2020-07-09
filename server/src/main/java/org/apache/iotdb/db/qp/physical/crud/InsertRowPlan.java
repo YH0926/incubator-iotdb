@@ -57,6 +57,8 @@ public class InsertRowPlan extends InsertPlan {
   // if values is object[], we could use the raw type of them, and we should set this to false
   private boolean isNeedInferType = false;
 
+  private List<Object> failedValues;
+
   public InsertRowPlan() {
     super(OperatorType.INSERT);
   }
@@ -190,6 +192,10 @@ public class InsertRowPlan extends InsertPlan {
   @Override
   public void markFailedMeasurementInsertion(int index, Exception e) {
     super.markFailedMeasurementInsertion(index, e);
+    if (failedValues == null) {
+      failedValues = new ArrayList<>();
+    }
+    failedValues.add(values[index]);
     values[index] = null;
   }
 
@@ -430,5 +436,17 @@ public class InsertRowPlan extends InsertPlan {
     Object value = values[measurementIndex];
     return new TimeValuePair(time,
         TsPrimitiveType.getByType(schemas[measurementIndex].getType(), value));
+  }
+
+
+  @Override
+  public InsertPlan transformFailedPlan() {
+    super.transformFailedPlan();
+    values = new Object[failedValues.size()];
+    for (int i = 0; i < values.length; i++) {
+      values[i] = failedValues.get(i);
+    }
+    failedValues = null;
+    return this;
   }
 }

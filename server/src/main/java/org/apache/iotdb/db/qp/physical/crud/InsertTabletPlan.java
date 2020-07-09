@@ -59,6 +59,8 @@ public class InsertTabletPlan extends InsertPlan {
   private int end;
   private List<Integer> range;
 
+  private List<Object> failedColumns;
+
 
   public InsertTabletPlan() {
     super(OperatorType.BATCHINSERT);
@@ -479,6 +481,22 @@ public class InsertTabletPlan extends InsertPlan {
 
   public void markFailedMeasurementInsertion(int index, Exception e) {
     super.markFailedMeasurementInsertion(index, e);
+    if (failedColumns == null) {
+      failedColumns = new ArrayList<>();
+    }
+    failedColumns.add(columns[index]);
     columns[index] = null;
+  }
+
+  @Override
+  public InsertPlan transformFailedPlan() {
+    super.transformFailedPlan();
+    this.columns = new Object[failedColumns.size()];
+    for (int i = 0; i < failedColumns.size(); i++) {
+      columns[i] = failedColumns.get(i);
+    }
+    failedColumns = null;
+    // TODO is there any else attributes to replace ??
+    return this;
   }
 }
