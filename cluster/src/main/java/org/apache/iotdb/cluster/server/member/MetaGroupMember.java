@@ -1464,6 +1464,7 @@ public class MetaGroupMember extends RaftMember {
         && status.getCode() == TSStatusCode.TIMESERIES_NOT_EXIST.getStatusCode()
         && ClusterDescriptor.getInstance().getConfig().isEnableAutoCreateSchema()) {
       // try to create timeseries
+      ((InsertPlan)plan).transformFailedPlan();
       boolean hasCreate = autoCreateTimeseries((InsertPlan)plan);
       if (hasCreate) {
         status = forwardPlan(planGroupMap, plan);
