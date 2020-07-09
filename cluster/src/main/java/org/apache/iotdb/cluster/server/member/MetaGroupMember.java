@@ -1449,10 +1449,6 @@ public class MetaGroupMember extends RaftMember {
    * @return
    */
   TSStatus forwardPlan(Map<PhysicalPlan, PartitionGroup> planGroupMap, PhysicalPlan plan) {
-//    InsertPlan backup = null;
-//    if (plan instanceof InsertPlan) {
-//      backup = (InsertPlan) ((InsertPlan) plan).clone();
-//    }
     // the error codes from the groups that cannot execute the plan
     TSStatus status;
     if (planGroupMap.size() == 1) {
@@ -1470,7 +1466,7 @@ public class MetaGroupMember extends RaftMember {
       // try to create timeseries
       boolean hasCreate = autoCreateTimeseries((InsertPlan)plan);
       if (hasCreate) {
-        status = forwardPlan(planGroupMap, (InsertPlan)plan);
+        status = forwardPlan(planGroupMap, plan);
       } else {
         logger.error("{}, Cannot auto create timeseries.", thisNode);
       }
