@@ -72,7 +72,8 @@ public class ClusterMain {
     }
 
     IoTDBDescriptor.getInstance().getConfig().setSyncEnable(false);
-    IoTDBDescriptor.getInstance().getConfig().setAutoCreateSchemaEnabled(false);
+    IoTDBDescriptor.getInstance().getConfig().setAutoCreateSchemaEnabled(
+        ClusterDescriptor.getInstance().getConfig().isEnableAutoCreateSchema());
     logger.info("Running mode {}", mode);
     try {
 

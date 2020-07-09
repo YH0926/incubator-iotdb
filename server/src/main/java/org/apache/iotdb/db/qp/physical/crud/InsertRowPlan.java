@@ -431,17 +431,4 @@ public class InsertRowPlan extends InsertPlan {
     return new TimeValuePair(time,
         TsPrimitiveType.getByType(schemas[measurementIndex].getType(), value));
   }
-
-  @Override
-  public Object clone() {
-    long timeClone = this.time;
-    String deviceIdClone = this.deviceId;
-    String[] measurementsClone = new String[this.measurements.length];
-    System.arraycopy(this.measurements, 0, measurementsClone, 0, measurementsClone.length);
-    Object[] valuesClone = new Object[this.values.length];
-    System.arraycopy(this.values, 0, valuesClone, 0, valuesClone.length);
-    TSDataType[] typesClone = new TSDataType[this.dataTypes.length];
-    System.arraycopy(this.dataTypes, 0, typesClone, 0, typesClone.length);
-    return new InsertRowPlan(deviceIdClone, timeClone, measurementsClone, typesClone, valuesClone);
-  }
 }
